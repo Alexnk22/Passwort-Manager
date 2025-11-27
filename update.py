@@ -26,16 +26,28 @@ except Exception:
 
 speicher_data = json.loads(Klartext.decode())
 
-seite = input("Welche Seite soll gelöscht werden? ")
+seite = input("Auf welcher seite wollen sie was ändern? ")
 
 if seite not in speicher_data:
     print("Diese Seite existiert nicht im Vault.")
     exit()
 
-# löschen
-del speicher_data[seite]
+print("\nAktueller Eintrag:")
+print(f"  Benutzername: {speicher_data[seite].get('benutzername', '')}")
+print(f"  Passwort:     {speicher_data[seite].get('passwort', '')}\n")
 
-print(f"Eintrag '{seite}' wurde gelöscht.")
+neuer_benutzer = input("Neuer Benutzername: ")
+neues_passwort = input("Neues Passwort: ")
+
+eintrag = speicher_data[seite]
+
+if neuer_benutzer != "":
+    eintrag["benutzername"] = neuer_benutzer
+
+if neues_passwort != "":
+    eintrag["passwort"] = neues_passwort
+
+speicher_data[seite] = eintrag
 
 new_plaintext = json.dumps(speicher_data).encode()
 
@@ -48,3 +60,5 @@ speicher["ciphertext"] = base64.b64encode(new_ciphertext).decode()
 
 with open("speicher.json", "w") as f:
     json.dump(speicher, f, indent=2)
+
+print("Eintrag aktualisiert.")

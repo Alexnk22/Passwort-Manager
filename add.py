@@ -3,7 +3,7 @@ import os
 import base64
 import getpass
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from fun import generate_AES_key  # oder dein Dateiname
+from fun import generate_AES_key
 
 with open("speicher.json","r") as f:
     speicher = json.load(f)
@@ -22,6 +22,7 @@ try:
     Klartext = aes.decrypt(nonce_bytes,ciphertext_bytes,None)
 except Exception:
     print("Flasches Passwort du lümmel")
+    exit()
 
 speicher_data = json.loads(Klartext.decode())
 
