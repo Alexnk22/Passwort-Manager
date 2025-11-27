@@ -1,12 +1,13 @@
 import os
 import json
+import getpass
 import base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from test import generate_AES_key 
+from fun import generate_AES_key 
 
 def get_Passwort():
     
-    return input("Das Passwort bitte: ")
+    return getpass.getpass("Das Passwort bitte: ")
 
 salt = os.urandom(16)
 
