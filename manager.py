@@ -1,155 +1,171 @@
-    import json
-    import os
-    import base64
-    import getpass
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    from fun import generate_AES_key
+import json
+import os
+import base64
+import getpass
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from fun import generate_AES_key
+import secrets
+import string
 
 
-    def speicher_laden():
-        with open("speicher.json", "r") as f:
-            return json.load(f)
+def generate_random_password(length=16):
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+def speicher_laden():
+    with open("speicher.json", "r") as f:
+        return json.load(f)
 
 
-    def speicher_sichern(speicher):
-        with open("speicher.json", "w") as f:
-            json.dump(speicher, f, indent=2)
+def speicher_sichern(speicher):
+    with open("speicher.json", "w") as f:
+        json.dump(speicher, f, indent=2)
 
 
-    def decrypt_vault():
-        speicher = speicher_laden()
+def decrypt_vault():
+    speicher = speicher_laden()
 
-        salt_b = base64.b64decode(speicher["salt"])
-        nonce_b = base64.b64decode(speicher["nonce"])
-        ciphertext_b = base64.b64decode(speicher["ciphertext"])
+    salt_b = base64.b64decode(speicher["salt"])
+    nonce_b = base64.b64decode(speicher["nonce"])
+    ciphertext_b = base64.b64decode(speicher["ciphertext"])
 
-        password = getpass.getpass("Passwort: ")
-        key = generate_AES_key(password, salt_b)
+    password = getpass.getpass("Passwort: ")
+    key = generate_AES_key(password, salt_b)
 
-        aes = AESGCM(key)
-        try:
-            klartext = aes.decrypt(nonce_b, ciphertext_b, None)
-        except Exception:
-            print("Falsches Passwort!")
-            return None, None, None
+    aes = AESGCM(key)
+    try:
+        klartext = aes.decrypt(nonce_b, ciphertext_b, None)
+    except Exception:
+        print("Falsches Passwort!")
+        return None, None, None
 
-        data = json.loads(klartext.decode())
-        return data, key, speicher
+    data = json.loads(klartext.decode())
+    return data, key, speicher
 
-    def anzeigen(data):
-        if not data:
-            print("Nichts gespeichert!")
-            return
+def anzeigen(data):
+    if not data:
+        print("Nichts gespeichert!")
+        return
 
 
-        for seite, eintrag in data.items():
-            print(f"{seite}:")
-            print(f"  Benutzername: {eintrag.get('benutzername', '')}")
-            print(f"  Passwort: {eintrag.get('passwort', '')}")
-            print()
+    for seite, eintrag in data.items():
+        print(f"{seite}:")
+        print(f"  Benutzername: {eintrag.get('benutzername', '')}")
+        print(f"  Passwort: {eintrag.get('passwort', '')}")
+        print()
 
-    def hinzufuegen(data):
-        seite = input("Seite: ")
-        benutzer = input("Benutzername: ")
+def hinzufuegen(data):
+
+    seite = input("Seite: ")
+    benutzer = input("Benutzername: ")
+
+        
+    jo = input("Willst du ein passwort generieren lassen? (y/n)")
+    if jo.lower() == "y":
+        passwort = generate_random_password(16)
+        print(f"Dein passwort ist: {passwort}")
+    else:
         passwort = input("Passwort: ")
 
-        data[seite] = {
+
+
+    data[seite] = {
             "benutzername": benutzer,
             "passwort": passwort
         }
 
-        print(f"'{seite}' wurde hinzugefügt.")
+    print(f"'{seite}' wurde hinzugefügt.")
 
 
-    def löschen(data):
-        seite = input("Welche Seite soll gelöscht werden? ")
+def löschen(data):
+    seite = input("Welche Seite soll gelöscht werden? ")
 
-        if seite not in data:
-            print(f"'{seite}' gibt es nciht")
-            return
+    if seite not in data:
+        print(f"'{seite}' gibt es nciht")
+        return
 
-        del data[seite]
-        print(f"'{seite}' wurde gelöscht.")
-
-
-
-    def aktualisieren(data):
-        seite = input("Welche Seite möchtest du aktualisieren? ")
-
-        if seite not in data:
-            print(f"'{seite}' gibt es nciht")
-            return
-
-        eintrag = data[seite]
-
-        print("\nAktueller Eintrag:")
-        print(f"  Benutzername: {eintrag.get('benutzername', '')}")
-        print(f"  Passwort: {eintrag.get('passwort', '')}\n")
-
-        neuer_benutzer = input("Neuer Benutzername: ")
-        neues_passwort = input("Neues Passwort: ")
-
-        if neuer_benutzer != "":
-            eintrag["benutzername"] = neuer_benutzer
-
-        if neues_passwort != "":
-            eintrag["passwort"] = neues_passwort
-
-        data[seite] = eintrag
-
-        print(f"'{seite}' wurde aktualisiert.")
+    del data[seite]
+    print(f"'{seite}' wurde gelöscht.")
 
 
 
-    def encrypt_and_save(data, key, speicher):
-        new_plaintext = json.dumps(data).encode()
-        new_nonce = os.urandom(12)
+def aktualisieren(data):
+    seite = input("Welche Seite möchtest du aktualisieren? ")
 
-        aes = AESGCM(key)
-        new_ciphertext = aes.encrypt(new_nonce, new_plaintext, None)
+    if seite not in data:
+        print(f"'{seite}' gibt es nciht")
+        return
 
-        speicher["nonce"] = base64.b64encode(new_nonce).decode()
-        speicher["ciphertext"] = base64.b64encode(new_ciphertext).decode()
+    eintrag = data[seite]
 
-        speicher_sichern(speicher)
+    print("\nAktueller Eintrag:")
+    print(f"  Benutzername: {eintrag.get('benutzername', '')}")
+    print(f"  Passwort: {eintrag.get('passwort', '')}\n")
 
-    if __name__ == "__main__":
-        while True:
-            print("\n===== Passwort-Manager =====")
-            print("1 – Alle Einträge anzeigen")
-            print("2 – Eintrag hinzufügen")
-            print("3 – Eintrag löschen")
-            print("4 – Eintrag aktualisieren")
-            print("5 – Programm beenden")
+    neuer_benutzer = input("Neuer Benutzername: ")
+    neues_passwort = input("Neues Passwort: ")
 
-            auswahl = input("\nAuswahl: ")
-            if auswahl  == "5":
-                print("Programm beendet.")
-                break
+    if neuer_benutzer != "":
+        eintrag["benutzername"] = neuer_benutzer
 
-            data, key, speicher = decrypt_vault()
+    if neues_passwort != "":
+        eintrag["passwort"] = neues_passwort
 
-            if data is None:
-                continue
+    data[seite] = eintrag
 
-            if auswahl == "1":
-                anzeigen(data)
+    print(f"'{seite}' wurde aktualisiert.")
 
-            elif auswahl == "2":
-                hinzufuegen(data)
-                encrypt_and_save(data, key, speicher)
 
-            elif auswahl == "3":
-                löschen(data)
-                encrypt_and_save(data, key, speicher)
 
-            elif auswahl == "4":
-                aktualisieren(data)
-                encrypt_and_save(data, key, speicher)
+def encrypt_and_save(data, key, speicher):
+    new_plaintext = json.dumps(data).encode()
+    new_nonce = os.urandom(12)
 
-            elif auswahl == "5":
-                print("Programm beendet.")
-                break
+    aes = AESGCM(key)
+    new_ciphertext = aes.encrypt(new_nonce, new_plaintext, None)
 
-            else:
-                print("Ungültige Auswahl.")
+    speicher["nonce"] = base64.b64encode(new_nonce).decode()
+    speicher["ciphertext"] = base64.b64encode(new_ciphertext).decode()
+
+    speicher_sichern(speicher)
+
+if __name__ == "__main__":
+    while True:
+        print("\n===== Passwort-Manager =====")
+        print("1 – Alle Einträge anzeigen")
+        print("2 – Eintrag hinzufügen")
+        print("3 – Eintrag löschen")
+        print("4 – Eintrag aktualisieren")
+        print("5 – Programm beenden")
+
+        auswahl = input("\nAuswahl: ")
+        if auswahl  == "5":
+            print("Programm beendet.")
+            break
+
+        data, key, speicher = decrypt_vault()
+
+        if data is None:    
+            continue
+
+        if auswahl == "1":
+            anzeigen(data)
+
+        elif auswahl == "2":
+            hinzufuegen(data)
+            encrypt_and_save(data, key, speicher)
+
+        elif auswahl == "3":
+            löschen(data)
+            encrypt_and_save(data, key, speicher)
+
+        elif auswahl == "4":
+            aktualisieren(data)
+            encrypt_and_save(data, key, speicher)
+
+        elif auswahl == "5":
+            print("Programm beendet.")
+            break
+
+        else:
+            print("Ungültige Auswahl.")
