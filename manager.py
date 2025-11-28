@@ -128,6 +128,15 @@ def aktualisieren(data):
 
     print(f"'{seite}' wurde aktualisiert.")
 
+def seiten_auflisten(data):
+    if not data:
+        print("Leer hier.")
+        return
+
+    print("\n----- Alle gespeicherten Seiten -----")
+    for seite in data.keys():
+        print(f"- {seite}")
+    print()
 
 
 def encrypt_and_save(data, key, speicher):
@@ -145,14 +154,15 @@ def encrypt_and_save(data, key, speicher):
 if __name__ == "__main__":
     while True:
         print("\n===== Passwort-Manager =====")
-        print("1 – Einträge anzeigen")
-        print("2 – Eintrag hinzufügen")
-        print("3 – Eintrag löschen")
-        print("4 – Eintrag aktualisieren")
-        print("5 – Programm beenden")
+        print("1 – Passwörter anzeigen")
+        print("2 – Passwort hinzufügen")
+        print("3 – Passwort löschen")
+        print("4 – Passwörter aktualisieren")
+        print("5 – Alle Seitennamen anzeigen")
+        print("6 – STOP")
 
         auswahl = input("\nAuswahl: ")
-        if auswahl  == "5":
+        if auswahl  == "6":
             print("Programm beendet.")
             break
 
@@ -179,8 +189,9 @@ if __name__ == "__main__":
             aktualisieren(data)
             encrypt_and_save(data, key, speicher)
             
-
         elif auswahl == "5":
+            seiten_auflisten(data)
+        elif auswahl == "6":
             print("Programm beendet.")
             break
 
