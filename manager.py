@@ -43,16 +43,31 @@ def decrypt_vault():
     return data, key, speicher
 
 def anzeigen(data):
-    if not data:
-        print("Nichts gespeichert!")
-        return
+    was = input("Was willst du sehen? (all/seitenname): ")
+
+    if was.lower() == "all":
+        if not data:
+            print("Nichts gespeichert!")
+            return
 
 
-    for seite, eintrag in data.items():
-        print(f"{seite}:")
-        print(f"  Benutzername: {eintrag.get('benutzername', '')}")
-        print(f"  Passwort: {eintrag.get('passwort', '')}")
-        print()
+        for seite, eintrag in data.items():
+            print(f"{seite}:")
+            print(f"  Benutzername: {eintrag.get('benutzername', '')}")
+            print(f"  Passwort: {eintrag.get('passwort', '')}")
+            print()
+        return 
+
+    seite = was
+    if seite not in data:
+        print(f"'{seite}' wurde nicht gefunden")
+        exit()
+    eintrag = data[seite]
+    print("\n----- Gefundener Eintrag -----")
+    print(f"Seite: {seite}")
+    print(f"Benutzername: {eintrag.get('benutzername', '')}")
+    print(f"Passwort: {eintrag.get('passwort', '')}\n")
+
 
 def hinzufuegen(data):
 
@@ -66,8 +81,6 @@ def hinzufuegen(data):
         print(f"Dein passwort ist: {passwort}")
     else:
         passwort = input("Passwort: ")
-
-
 
     data[seite] = {
             "benutzername": benutzer,
@@ -132,7 +145,7 @@ def encrypt_and_save(data, key, speicher):
 if __name__ == "__main__":
     while True:
         print("\n===== Passwort-Manager =====")
-        print("1 – Alle Einträge anzeigen")
+        print("1 – Einträge anzeigen")
         print("2 – Eintrag hinzufügen")
         print("3 – Eintrag löschen")
         print("4 – Eintrag aktualisieren")
@@ -150,18 +163,22 @@ if __name__ == "__main__":
 
         if auswahl == "1":
             anzeigen(data)
+            
 
         elif auswahl == "2":
             hinzufuegen(data)
             encrypt_and_save(data, key, speicher)
+            
 
         elif auswahl == "3":
             löschen(data)
             encrypt_and_save(data, key, speicher)
+            
 
         elif auswahl == "4":
             aktualisieren(data)
             encrypt_and_save(data, key, speicher)
+            
 
         elif auswahl == "5":
             print("Programm beendet.")
