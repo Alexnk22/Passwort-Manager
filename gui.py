@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         self.login.clicked.connect(self.login_start)
         self.layout.addWidget(self.login)
 
-        self.setFixedSize(200,100)
+        self.setFixedSize(400,140)
 
 
     def login_start(self):
@@ -70,7 +70,7 @@ class MAIN_MANAGER(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Passwörter")
-        self.setFixedSize(700, 400)
+        self.setFixedSize(800, 500)
         self.data = data
         self.key = key
         self.speicher = speicher
